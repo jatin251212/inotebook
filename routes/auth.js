@@ -2,6 +2,10 @@ const express = require('express');
 const User=require('../models/User')
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
+const bcrypt=require('bcryptjs')
+var jwt = require('jsonwebtoken');
+
+const JWT_SECRET="WhySoSerious$8";
 
 router.post('/createuser',[
     body('name','Enter a valid name').isLength({min:3}),
@@ -15,13 +19,24 @@ router.post('/createuser',[
           return res.status(400).json({ errors: errors.array() });
         }
         try {
-            
+            const salt=await bcrypt.genSalt(10);
+            const secPass=await bcrypt.hash( req.body.password,salt)
+
             const user = await User.create({
               name: req.body.name,
               email: req.body.email,
-              password: req.body.password
+              password: secPass
             });
-            res.json(user);
+
+            const data={
+              user:{
+                id:user.id
+              }
+            }
+            const authToken= jwt.sign(data, JWT_SECRET)
+
+            res.json({authToken});
+            console.log(data)
           } catch (error) {
             if (error.code === 11000) {
               // Duplicate key error
