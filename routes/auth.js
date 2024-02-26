@@ -37,6 +37,7 @@ router.post('/createuser',[
               }
             }
             const authToken= jwt.sign(data, JWT_SECRET)
+            
 
             res.json({authToken});
             
@@ -87,7 +88,7 @@ router.post('/login',[
 
           });
 
-          // ROUTE 3: Get loggedin User Details using: POST "/api/auth/getuser". Login required
+          // ROUTE 3: Get logged in User Details using: POST "/api/auth/getuser". Login required
           router.post('/getuser', fetchuser,  async (req, res) => {
 
             try {

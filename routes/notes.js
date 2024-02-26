@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const fetchuser = require('../middleware/fetchuser');
-const Notes=require('../models/Notes')
+const Notes=require('../models/Notes');
+const User=require('../models/User');
+
 const { body, validationResult } = require('express-validator');
 
 
@@ -31,9 +33,12 @@ router.post('/addnote',fetchuser,[
         if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
         }
+        userId = req.user.id;
+        const user1 = await User.findById(userId).select("-password")
+        
 
         const notes=new Notes({
-            title ,description ,tag ,user:req.user.id
+            title ,description ,tag ,user:req.user.id,username:user1.name
 
         })
         const savedNote=await notes.save();

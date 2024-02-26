@@ -11,6 +11,8 @@ const fetchuser=(req,res,next)=>{
         // req.user = data.user;
         const data = jwt.verify(token, JWT_SECRET);
         
+
+        
         req.user = data.user;
         next();
         
