@@ -27,12 +27,14 @@ router.post('/addnote',fetchuser,[
     body('title','Enter a valid title').isLength({min:3}),
     body('description','Description must be atleast 5 characters').isLength({min:5})
 ], async (req,res)=>{
+    let success=false;
     try {
-        const { title ,description ,tag }=req.body;
+        // const { title ,description ,tag }=req.body;
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
         }
+        const { title ,description ,tag }=req.body;
         userId = req.user.id;
         const user1 = await User.findById(userId).select("-password")
         

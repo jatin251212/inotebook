@@ -14,12 +14,13 @@ router.post('/createuser',[
     body('name','Enter a valid name').isLength({min:3}),
     body('email','Enter a valid email').isEmail(),
     body('password','Enter a valid password').isLength({min:5})], async(req,res)=>{
+      let success=false;  
         // console.log(req.body);
         // const user=User(req.body);
         // user.save();
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-          return res.status(400).json({ errors: errors.array() });
+          return res.status(400).json({success, errors: errors.array() });
         }
         try {
             const salt=await bcrypt.genSalt(10);
@@ -30,24 +31,27 @@ router.post('/createuser',[
               email: req.body.email,
               password: secPass
             });
+            console.log(user);
 
             const data={
               user:{
                 id:user.id
               }
             }
+            console.log(data)
             const authToken= jwt.sign(data, JWT_SECRET)
+            success=true;
             
 
-            res.json({authToken});
+            res.json({success,authToken});
             
           } catch (error) {
             if (error.code === 11000) {
               // Duplicate key error
-              return res.status(400).json({ error: 'Email already exists',message:error.message });
+              return res.status(400).json({success, error: 'Email already exists',message:error.message });
             }
             console.error(error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({success, error: error.message });
           }
         });
 
@@ -55,6 +59,8 @@ router.post('/createuser',[
 router.post('/login',[
           body('email','Enter a valid email').isEmail(),
           body('password','Password cannot be blank').exists()], async(req,res)=>{
+            let success=false;
+
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
               return res.status(400).json({ errors: errors.array() });
@@ -63,12 +69,14 @@ router.post('/login',[
             try {
               let user=await User.findOne({email});
               if(!user){
-                return req.status(400).json({error: 'Please try to login with correct Information'})
+                success=false;
+                return req.status(400).json({success,error: 'Please try to login with correct Information'})
               }
 
               const comparePass=await bcrypt.compare(password,user.password);
               if(!comparePass){
-                return req.status(400).json({error: 'Please try to login with correct Information'})
+                success=false;
+                return req.status(400).json({success,error: 'Please try to login with correct Information'})
 
               }
               const data={
@@ -77,8 +85,9 @@ router.post('/login',[
                 }
               }
               const authToken= jwt.sign(data, JWT_SECRET)
+              success=true;
   
-              res.json({authToken});
+              res.json({success,authToken});
 
 
               // console.log(user);
@@ -94,6 +103,7 @@ router.post('/login',[
             try {
               userId = req.user.id;
               const user = await User.findById(userId).select("-password")
+  
               
               res.send(user)
             } catch (error) {
